@@ -350,8 +350,8 @@ class Game(metaclass=Singleton):
     def _handle_lietome(self):
         # total of game.lietime seconds to submit a lie
         # advance automatically if everyone has submitted a lie and liked an answer!
-        # to temporarily disable timing use:
         # if time.time() - game.t > game.lietime or len(game.lies) == len(game.players):
+        # to temporarily disable timing use:
         if len(self.cur_question.lies) == len(self.players):
             print('Everyone has submitted their lie, advancing to lie selection')
             self.time()
@@ -520,8 +520,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--httpport",
         type=int,
-        default=8000,
-        help="Http port (8000)",
+        default=3000,
+        help="Http port (3000)",
     )
     parser.add_argument(
         "--wsport",
