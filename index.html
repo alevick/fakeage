@@ -43,7 +43,10 @@ var checkpng = "<img alt=\"OK\" src=\"/src/check.png\">";
 var eckspng = "<img alt =\"X\" src=\"/src/ecks.png\">";
 var likepng = "<img alt = \"likes\" src=\"/src/like.png\">";
 var cuppng = "<img alt = \"pts\" src=\"/src/cup.png\">";
-var fakeNames = ['asdf', 'qwre'];
+var fakeNames = ['Rameses The Lying One', 'Moses, Turns Water into LIES',
+                 'Slippery Tzipporah aka Slippy Tzippy', 'Pharaoh Seti, Baby Murderer AND Liar',
+                 'Yochevedeceiver', 'Miriam, Master of Misdirection',
+                 'Aaron (No Relation)', 'Hotep, High Priest of Deception', 'Huy and his hokem'];
 
 function latinize(nonlatin){
 	//This function is broken, does different shit on all browsers! FUCK THIS HORRIBLE MESS! I HATE FUCKING NON-ASCII CHARACTERS!
@@ -90,7 +93,7 @@ function init(){
 	gameaddress ="http://"+ ipValue.split("/")[2].split(":")[0] +":8000";
 	console.log("Websocket IP:",ipValue);
 	showonly('logindiv');
-	$("#loginname").attr("placeholder", 'Fake Name' + Math.floor(Math.random()*1000+1));
+	$("#loginname").attr("placeholder", fakeNames[Math.floor(Math.random() * (fakeNames.length))]);
 	$("#viewerdiv").hide(); //because showonly has no effect here, wtf?
 	$("#enterliediv").hide();
 	$("#selectliediv").hide();
