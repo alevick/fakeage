@@ -28,7 +28,8 @@ import threading
 import time
 
 import pyqrcode
-from unidecode import unidecode  #thank me later: https://pypi.org/project/Unidecode/#description
+# thank me later: https://pypi.org/project/Unidecode/#description
+from unidecode import unidecode
 
 from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 
@@ -70,7 +71,7 @@ class Question:
             'lie': self.lies.get(playername, None),
             'likes': self.likes.get(playername, None),
             'choice': self.choices.get(playername, None),
-            }
+        }
 
     def get_scoreorder(self):
         """ Evaluates score order according the received answers/lies """
@@ -81,14 +82,16 @@ class Question:
             for selectorname, choice in self.choices.items():
                 if lie == choice and liar != selectorname:
                     lieselectioncount += 1
-                    print(f'Liar: {liar} with lie {lie} got chosen by {selectorname}')
+                    print(
+                        f'Liar: {liar} with lie {lie} got chosen by {selectorname}')
             lie_tuple = (lie, lieselectioncount)
             if lieselectioncount > 0 and lie_tuple not in tmp_score_set:
                 tmp_score_set.add(lie_tuple)
                 scoreorder.append(lie_tuple)
         # score most chosen answer last
         scoreorder.sort(key=lambda x: x[1], reverse=True)
-        correctcount = sum([1 for _, choice in self.choices.items() if choice == self.answer])
+        correctcount = sum(
+            [1 for _, choice in self.choices.items() if choice == self.answer])
         scoreorder.append((self.answer, correctcount))  # score truth very last
         print(f'scoreorder: {scoreorder}')
         return scoreorder
@@ -112,20 +115,21 @@ class Player:
             'name': self.name,
             'score': self.score,
             'likecount': self.likecount,
-            }
+        }
 
 
 class Game(metaclass=Singleton):
     def __init__(self):
         # state management
-        self.states = ['pregame', 'lietome', 'lieselection', 'scoring', 'finalscoring']
+        self.states = ['pregame', 'lietome',
+                       'lieselection', 'scoring', 'finalscoring']
         self.state = 'pregame'
 
         # players
         self.clients = []  # list of all connected clients
         self.viewers = []  # list of clients who are views only
         self.players = {}  # dict of client:Player
-        self.disconnected_players = {} # dict of playername:Player
+        self.disconnected_players = {}  # dict of playername:Player
 
         # questions
         self.questions = []  # list of Questions
@@ -144,7 +148,8 @@ class Game(metaclass=Singleton):
         self.questionsperround = 15  # number of question in a game
         self.scoretime = 10  # seconds between each scoring view
         self.lietime = 120  # time [s] each player has to come up with a lie
-        self.choicetime = 30  # players have numlies * choicetime seconds to select and like answers
+        # players have numlies * choicetime seconds to select and like answers
+        self.choicetime = 30
 
     def time(self):
         self.t = time.time()
@@ -181,7 +186,7 @@ class Game(metaclass=Singleton):
             self.viewers.remove(client)
         if client in self.players:
             player = self.players[client]
-            if player.score > 0  and player.likecount > 0:
+            if player.score > 0 and player.likecount > 0:
                 self.disconnected_players[player.name] = player
             if self.cur_question:
                 self.cur_question.remove_player(player.name)
@@ -209,7 +214,8 @@ class Game(metaclass=Singleton):
         for player in score_sorted_player_list:
             player_info = player.get_info()
             if self.cur_question:
-                player_info.update(self.cur_question.get_player_info(player.name))
+                player_info.update(
+                    self.cur_question.get_player_info(player.name))
             gamestatedict['players'].append(player_info)
         print(f'{len(self.viewers)} viewers, '
               f'{len(self.players)} players, '
@@ -244,7 +250,8 @@ class Game(metaclass=Singleton):
 
     def lie_selection_received(self, client, selectedlie):
         if self.state != 'lieselection':
-            print(f'{self.players[client]} tried to choose lie {selectedlie} out of time')
+            print(
+                f'{self.players[client]} tried to choose lie {selectedlie} out of time')
             return False
         player = self.players[client]
         if player.name in self.cur_question.choices:
@@ -254,7 +261,8 @@ class Game(metaclass=Singleton):
             return False
 
         if self.cur_question.lies.get(player, None) == selectedlie:
-            print(f'Player {player} tried to select their own lie ({selectedlie})')
+            print(
+                f'Player {player} tried to select their own lie ({selectedlie})')
             return False
 
         self.cur_question.choices[player.name] = selectedlie
@@ -269,13 +277,15 @@ class Game(metaclass=Singleton):
                 lierplayer = self.get_player_by_name(liername)
                 if lierplayer:
                     lierplayer.score += 1
-                print(f'Lier {liername} with lie {lie} got chosen by {player.name}')
+                print(
+                    f'Lier {liername} with lie {lie} got chosen by {player.name}')
         self.scoreorder = self.cur_question.get_scoreorder()
         return True
 
     def like_recieved(self, client, likes):
         if self.state != 'lieselection':
-            print(f'{self.players[client]} tried to like lie {likes} out of time')
+            print(
+                f'{self.players[client]} tried to like lie {likes} out of time')
             return False
         player = self.players[client]
         if player.name in self.cur_question.likes:
@@ -297,16 +307,23 @@ class Game(metaclass=Singleton):
                 print(f'Player: {player} likes {lie} by {liername}')
         return True
 
-    def load_questions(self, questionsfilename=''):
-        if questionsfilename != '':
-            self.questionsfilename = questionsfilename
+    def read_questions(self, buffer):
+        questions = []
         with open(self.questionsfilename, 'r', encoding='utf-8') as questionsfile:
             for line in questionsfile.readlines():
                 line = line.strip().split('\t')
                 if len(line) == 2:
-                    question = Question(line[0], unidecode_allcaps_shorten32(line[1]))
-                    self.questions.append(question)
-        num_questions = len(self.questions)
+                    question = Question(
+                        line[0], unidecode_allcaps_shorten32(line[1]))
+                    questions.append(question)
+        num_questions = (len(questions) - 1) / 2
+        return questions
+
+    def load_questions(self, questionsfilename=''):
+        if questionsfilename != '':
+            self.questionsfilename = questionsfilename
+        questions = self.read_questions(self.questionsfilename)
+        num_questions = len(questions)
         self.questionsperround = min(self.questionsperround, num_questions)
         print(f'Loaded {num_questions} questions')
 
@@ -315,7 +332,8 @@ class Game(metaclass=Singleton):
             questionsfile = open(self.questionsfilename, 'a')
             question, _, answer = unidecode(q_and_a).rpartition(':')
             print(f'Question submitted: {q_and_a}')
-            questionsfile.write('{}\t{}\n'.format(question, unidecode_allcaps_shorten32(answer)))
+            questionsfile.write('{}\t{}\n'.format(
+                question, unidecode_allcaps_shorten32(answer)))
         except UnicodeDecodeError:
             print(f'Failed to decode unicode string {q_and_a}')
         except IOError:
@@ -361,7 +379,8 @@ class Game(metaclass=Singleton):
     def _handle_lieselection(self):
         # numlies*5 + 10 seconds to choose lies and like stuff
         # OR everyone has submitted a choice
-        times_up = (time.time() - self.t) > ((len(self.cur_question.lies) + 1) * self.choicetime)
+        times_up = (
+            time.time() - self.t) > ((len(self.cur_question.lies) + 1) * self.choicetime)
         everyone_done = len(self.cur_question.likes) == len(self.players)
         if self.autoadvance and times_up or everyone_done:
             print('Time to choose answers lies is up, advancing to scoring')
@@ -432,14 +451,16 @@ class WSFakeageServer(WebSocket):
 
     def _handle_cmd_lie(self, parameter):
         if game.state != 'lietome':
-            print(f'{game.players[self]} tried to submit lie {parameter} out of time')
+            print(
+                f'{game.players[self]} tried to submit lie {parameter} out of time')
         else:
             player = game.players[self]
             if player in game.cur_question.lies:
                 print(f'{game.players[self]} tried to lie multiple times!')
             else:
                 # register lie
-                game.cur_question.lies[player.name] = unidecode_allcaps_shorten32(parameter)
+                game.cur_question.lies[player.name] = unidecode_allcaps_shorten32(
+                    parameter)
                 game.update_view('viewers')
 
     def _handle_cmd_choice(self, parameter):
@@ -466,7 +487,8 @@ class WSFakeageServer(WebSocket):
         else:
             idx = (game.states.index(game.state) + 1) % len(game.states)
             newstate = game.states[max(0, idx)]
-            print(f'Advancing state through viewer: from {game.state} to {newstate}')
+            print(
+                f'Advancing state through viewer: from {game.state} to {newstate}')
             if newstate == 'pregame':
                 game.forcestart = True
             game.time()
@@ -484,13 +506,14 @@ class WSFakeageServer(WebSocket):
         print(f'{self.address} disconnected, removed')
 
 
-def write_websocket_ip_to_file(websocket_ip_fn="websocket_ip.js",wshostname = ''):
+def write_websocket_ip_to_file(websocket_ip_fn="websocket_ip.js", wshostname=''):
     """ Write websocket URL to a file """
     ws_ip_file_text = []
     ws_ip_file_text.append(f'//This file is generated by {sys.argv[0]}. '
                            'Do not edit.\n')
     ws_ip_file_text.append('function get_websocket_ip(){\n')
-    ws_ip_file_text.append('\treturn "ws://{}:{}/"\n'.format(my_ip if wshostname == '' else wshostname, args.wsport))
+    ws_ip_file_text.append(
+        '\treturn "ws://{}:{}/"\n'.format(my_ip if wshostname == '' else wshostname, args.wsport))
     ws_ip_file_text.append('}')
     with open(websocket_ip_fn, 'w') as wsfile_w:
         wsfile_w.write(''.join(ws_ip_file_text))
@@ -520,8 +543,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--httpport",
         type=int,
-        default=3002,
-        help="Http port (3002)",
+        default=8000,
+        help="Http port (8000)",
     )
     parser.add_argument(
         "--wsport",
@@ -557,10 +580,8 @@ if __name__ == "__main__":
 
     # Set the IP in the js file on each launch of the server.  This
     # seems pretty hacky, but i couldnt think of anything better
-	
-	
-	
-    write_websocket_ip_to_file("websocket_ip.js",args.wshostname)
+
+    write_websocket_ip_to_file("websocket_ip.js", args.wshostname)
 
     game = Game()
 
