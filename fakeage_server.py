@@ -26,6 +26,7 @@ import socket
 import sys
 import threading
 import time
+import math
 
 import pyqrcode
 # thank me later: https://pypi.org/project/Unidecode/#description
@@ -139,13 +140,16 @@ class Game(metaclass=Singleton):
 
         # internal variables
         self.forcestart = False
-        self.roundcount = 0
+        self.question_number = 0
         self.autoadvance = False
         self.questionsfilename = ''
         self.t = time.time()
 
         # game config:
-        self.questionsperround = 15  # number of question in a game
+        self.num_round_one_questions = None
+        self.num_round_two_questions = None
+        self.points_for_truth = None
+        self.questions_per_round = 15  # number of question in a game
         self.scoretime = 10  # seconds between each scoring view
         self.lietime = 120  # time [s] each player has to come up with a lie
         # players have numlies * choicetime seconds to select and like answers
@@ -162,7 +166,7 @@ class Game(metaclass=Singleton):
         for player in self.players.values():
             player.reset()
         # reset game-relevant stuff
-        self.roundcount = 0
+        self.question_number = 0
 
     def add_player(self, client, playername):
         if len(playername) > 32:
@@ -268,7 +272,7 @@ class Game(metaclass=Singleton):
         self.cur_question.choices[player.name] = selectedlie
 
         if selectedlie == self.cur_question.answer:
-            player.score += 1
+            player.score += self.points_for_truth
             print(f'Player {player.name} got the answer '
                   f'({self.cur_question.answer}) correctly ({selectedlie})')
 
@@ -276,7 +280,7 @@ class Game(metaclass=Singleton):
             if lie == selectedlie and liername != player.name:
                 lierplayer = self.get_player_by_name(liername)
                 if lierplayer:
-                    lierplayer.score += 1
+                    lierplayer.score += self.points_for_truth / 2
                 print(
                     f'Lier {liername} with lie {lie} got chosen by {player.name}')
         self.scoreorder = self.cur_question.get_scoreorder()
@@ -307,25 +311,27 @@ class Game(metaclass=Singleton):
                 print(f'Player: {player} likes {lie} by {liername}')
         return True
 
-    def read_questions(self, buffer):
+    def read_questions_file(self, buffer):
         questions = []
-        with open(self.questionsfilename, 'r', encoding='utf-8') as questionsfile:
+        with open(buffer, 'r', encoding='utf-8') as questionsfile:
             for line in questionsfile.readlines():
                 line = line.strip().split('\t')
                 if len(line) == 2:
                     question = Question(
                         line[0], unidecode_allcaps_shorten32(line[1]))
                     questions.append(question)
-        num_questions = (len(questions) - 1) / 2
-        return questions
+        num_round_one_questions = math.floor((len(questions) - 1) / 2)
+        num_round_two_questions = len(
+            questions) - 1 - num_round_one_questions
+        return questions, num_round_one_questions, num_round_two_questions
 
     def load_questions(self, questionsfilename=''):
         if questionsfilename != '':
             self.questionsfilename = questionsfilename
-        questions = self.read_questions(self.questionsfilename)
-        num_questions = len(questions)
-        self.questionsperround = min(self.questionsperround, num_questions)
-        print(f'Loaded {num_questions} questions')
+        self.questions, self.num_round_one_questions, self.num_round_two_questions = self.read_questions_file(
+            self.questionsfilename)
+        print(
+            f'Loaded {len(self.questions)} questions. Round 1: {self.num_round_one_questions}. Round 2: {self.num_round_two_questions}')
 
     def submit_question(self, q_and_a):
         try:
@@ -345,9 +351,16 @@ class Game(metaclass=Singleton):
         self.time()
         if not self.questions:
             self.reset()
-        self.cur_question = self.questions.pop(0)
-        print(f'The current question and answer are: {self.cur_question}')
-        self.roundcount += 1
+        self.cur_question = self.questions[self.question_number]
+        self.question_number += 1
+        if self.question_number == len(self.questions):
+            self.points_for_truth = 3000
+        elif self.question_number > self.num_round_one_questions:
+            self.points_for_truth = 2000
+        else:
+            self.points_for_truth = 1000
+        print(
+            f'The current question and answer are: {self.cur_question}. Points for truth {self.points_for_truth}')
         self.currentlie = None
         self.scoreorder = []
 
@@ -399,7 +412,7 @@ class Game(metaclass=Singleton):
         times_up = (time.time() - self.t) > (2 * self.scoretime)
         if self.autoadvance and times_up:
             self.forcestart = True
-            if self.roundcount >= self.questionsperround:
+            if self.question_number >= len(self.questions):
                 self.forcestart = False
                 self.reset()
             self.state = 'pregame'
