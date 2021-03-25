@@ -43,10 +43,10 @@ var checkpng = "<img alt=\"OK\" src=\"/src/check.png\">";
 var eckspng = "<img alt =\"X\" src=\"/src/ecks.png\">";
 var likepng = "<img alt = \"likes\" src=\"/src/like.png\">";
 var cuppng = "<img alt = \"pts\" src=\"/src/cup.png\">";
-var fakeNames = ['Rameses The Lying One', 'Moses, Turns Water into LIES',
+var fakeNames = ['Rameses The Lying One', "A Firstborn Caught in the Crossliar", 'Moses, Lies About All But Plagues',
                  'Slippery Tzipporah aka Slippy Tzippy', 'Pharaoh Seti, Baby Murderer AND Liar',
-                 'Yochevedeceiver', 'Miriam, Master of Misdirection',
-                 'Aaron (No Relation)', 'Hotep, High Priest of Deception', 'Huy and his hokem'];
+                 'Yochevedeceiver', 'Miriam, Master of Misdirection', 'A True IsraeLIEt', 'That one staff the Moses turned into a snake',
+                 'Random Egyptian Complicit in Lies', 'Aaron (No Relation)', 'Hotep, High Priest of Deception', 'Huy, Holyman of Hokem'];
 
 function latinize(nonlatin){
 	//This function is broken, does different shit on all browsers! FUCK THIS HORRIBLE MESS! I HATE FUCKING NON-ASCII CHARACTERS!
@@ -187,7 +187,7 @@ function init(){
 		};
 		if (jsonobj.state == 'scoring'){ //scoring is identical in viewer and player
 			showonly("#viewerdiv");
-			document.getElementById("viewerdivhead").innerHTML = "Pontozas";
+			document.getElementById("viewerdivhead").innerHTML = "Scores";
 			var pre = document.createElement("h1");
 			var playerswholiedthis = [];
 			var playerswhochosethis = [];

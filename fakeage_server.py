@@ -76,12 +76,12 @@ class Question:
         """ Evaluates score order according the received answers/lies """
         scoreorder = []  # list of (lie, numtimeselected)
         tmp_score_set = set()  # maintain a set as well to speed up lookups
-        for lier, lie in self.lies.items():
+        for liar, lie in self.lies.items():
             lieselectioncount = 0
             for selectorname, choice in self.choices.items():
-                if lie == choice and lier != selectorname:
+                if lie == choice and liar != selectorname:
                     lieselectioncount += 1
-                    print(f'Lier: {lier} with lie {lie} got chosen by {selectorname}')
+                    print(f'Liar: {liar} with lie {lie} got chosen by {selectorname}')
             lie_tuple = (lie, lieselectioncount)
             if lieselectioncount > 0 and lie_tuple not in tmp_score_set:
                 tmp_score_set.add(lie_tuple)
@@ -520,8 +520,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--httpport",
         type=int,
-        default=3000,
-        help="Http port (3000)",
+        default=3002,
+        help="Http port (3002)",
     )
     parser.add_argument(
         "--wsport",
