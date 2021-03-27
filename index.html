@@ -220,7 +220,11 @@ function init(){
 		};
 		if (jsonobj.state == "finalscoring" || jsonobj.state == "endgame") {//scoring is identical in viewer and player
 			//var pre = document.createElement("h1");
-      var title = jsonobj.state == 'finalscoring' ? "Tally of thine efforts:" : 'Final scores:'
+      var title = 'Tally of thine efforts';
+      if (jsonobj.state == 'endgame') {
+        title = 'Final scores:';
+      }
+      console.log('TITLE', title, 'state', jsonobj.state);
 			document.getElementById("viewerdivhead").innerHTML = jsonobj.question + ' (' + jsonobj.answer + ')' + ' <br> ' + title;
 			//console.log(pre.innerHTML);
 			//output.appendChild(pre);
@@ -452,7 +456,7 @@ function advancestate(){
 
 		<footer>
 		<div data-role="footer" class ="ui-footer-fixed">
-			<h4> Passedover by An Intelligent Bin Chicken (Original by mysterme@gmail.com)<a data-role="button" id="advancestatebtn" data-icon="arrow-r" data-id="myfooter"  onclick="advancestate()" data-inline="true">Next</a> </h4>
+			<h4> Passedover by Aaron (Voiced By Jeff Goldblum)<a data-role="button" id="advancestatebtn" data-icon="arrow-r" data-id="myfooter"  onclick="advancestate()" data-inline="true">Next</a> </h4>
 		</div>
 		</footer>
 		<script>init()</script>

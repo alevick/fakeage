@@ -123,7 +123,7 @@ class Game(metaclass=Singleton):
     def __init__(self):
         # state management
         self.states = ['pregame', 'lietome',
-                       'lieselection', 'scoring', 'finalscoring']  # , 'endgame']
+                       'lieselection', 'scoring', 'finalscoring', 'endgame']
         self.state = 'pregame'
 
         # players
@@ -172,7 +172,7 @@ class Game(metaclass=Singleton):
 
     def add_player(self, client, playername):
         if len(playername) > 32:
-            playername = playername[:32]
+            playername = playername[: 32]
         if playername in [p.name for p in self.players.values()]:
             print(f'{client} tried to log in as an existing playername {playername}!')
             return False
@@ -249,11 +249,12 @@ class Game(metaclass=Singleton):
         # if self.question_number >= len(self.questions):  # done, advance state
         if not self.scoreorder:  # done, advance state
             print('Done with scores, advancing automatically to finalscoring')
-            self.state = 'finalscoring'
+            if (self.question_number >= len(self.questions)):
+                self.state = 'endgame'
+            else:
+                self.state = 'finalscoring'
         else:
             self.currentlie = self.scoreorder.pop(0)[0]
-        # else:
-        #     self.state = 'lietome'
         self.update_view()
         self.time()
 
@@ -374,7 +375,7 @@ class Game(metaclass=Singleton):
 
     def handle_state(self, state):
         """ Do actions of a given game state """
-        # print('handling state change', state)
+        print('handling state change', state)
         if state in self.states:
             # call specific handler function
             state_handler_func = getattr(self, f'_handle_{state}')
@@ -423,21 +424,18 @@ class Game(metaclass=Singleton):
     def _handle_finalscoring(self):
         times_up = (time.time() - self.t) > (2 * self.scoretime)
         if (self.autoadvance and times_up) or self.manual_advance:
-            self.forcestart = True
-            self.state = 'pregame'
-            self.time()
-        # if self.question_number >= len(self.questions):
-        #     print('Going to endgame', self.question_number, len(self.questions))
-        #     self.state = 'endgame'
+            if self.question_number >= len(self.questions):
+                print('Going to endgame')
+                self.state = 'endgame'
+            else:
+                self.forcestart = True
+                self.state = 'pregame'
+                self.time()
 
     def _handle_endgame(self):
-        times_up = (time.time() - self.t) > (2 * self.scoretime)
-        if self.autoadvance and times_up:
-            self.forcestart = True
+        if (self.manual_advance):
             self.state = 'pregame'
-            self.time()
-        if self.question_number >= len(self.questions):
-            self.state = 'endgame'
+            self.reset()
 
 
 def unidecode_allcaps_shorten32(string):
