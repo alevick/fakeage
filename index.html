@@ -134,7 +134,7 @@ function init(){
 		}
 		if (jsonobj.state == 'lietome'){
 			if (viewer){
-				document.getElementById("viewerdivhead").innerHTML = jsonobj.question+'<br>Enter a lie:<br>';
+				document.getElementById("viewerdivhead").innerHTML = jsonobj.question+'<br>Deceive the other advisors:<br>';
 
 				var pre = document.createElement("p");
 				var playerlist = [];
@@ -203,15 +203,15 @@ function init(){
 			}
 			
 			if (jsonobj.currentlie != jsonobj.answer){
-				pretext += jsonobj.currentlie + " <i> was a ruse! Jesters whoms't performed the caper: </i>  " + playerswholiedthis.join(", ")+"<br> <i> Fools whoms't were duped: </i>  "+playerswhochosethis.join(", ");
+				pretext += jsonobj.currentlie + " <i> was a ruse! Viziers who submitted the lie: </i>  " + playerswholiedthis.join(", ")+"<br> <i> False seers whoms't were duped: </i>  "+playerswhochosethis.join(", ");
 			}else{
-				pretext += jsonobj.currentlie + " <i> was the truth! </i> <br>"
-				if (playerswhochosethis.length >0) pretext += "<i> Unfools whoms't divined the truth: </i>" + playerswhochosethis.join(", ");
+				pretext += jsonobj.currentlie + " <i> was the proper advise! </i> <br>"
+				if (playerswhochosethis.length >0) pretext += "<i> True Viziers who divined the truth: </i>" + playerswhochosethis.join(", ");
 				else pretext += "Not a soul knew the truth!";
 			}
 			
 			if (playerswholikedthis.length > 0){
-				pretext += "<br> <i> Jesters whoms't enjoyed the ruse: </i>"+playerswholikedthis.join(", ");
+				pretext += "<br> <i> Viziers who were amused: </i>"+playerswholikedthis.join(", ");
 			}
 			pre.innerHTML = pretext;
 			output.appendChild(pre);
@@ -219,7 +219,7 @@ function init(){
 		};
 		if (jsonobj.state == "finalscoring" || jsonobj.state == "endgame") {//scoring is identical in viewer and player
 			//var pre = document.createElement("h1");
-      var title = 'Tally of thine efforts';
+      var title = 'Favor curried with Pharaoh';
       if (jsonobj.state == 'endgame') {
         title = 'Final scores:';
       }
@@ -255,7 +255,7 @@ function init(){
 			}
 			for (var tablecount = 0; tablecount < numtables; tablecount++) {
 				tabletext += '<td valign="top">';
-				tabletext += "<table border = 0><thead><tr><th>#</th><th>Jester</th><th>Jest performed</th><th>"+cuppng+"</th><th>"+likepng+"</th></tr></thead><tbody class=\"ui-widget-content\">";
+				tabletext += "<table border = 0><thead><tr><th>#</th><th>Vizier</th><th>False advice</th><th>"+cuppng+"</th><th>"+likepng+"</th></tr></thead><tbody class=\"ui-widget-content\">";
 
 				for (var player = stepsize *tablecount ; player < Math.min(jsonobj.players.length, (stepsize*(tablecount+1))); player++) {
 					var p = jsonobj.players[player];
@@ -332,7 +332,7 @@ function lie(){
 		$("#mylie").val("");
 		$("#mylie").hide();
 		$("#liebtn").hide();
-		document.getElementById("questionh").innerHTML = "Jest has been recorded";
+		document.getElementById("questionh").innerHTML = "Lie has been recorded";
 	}
 }
 function sortlies(){
@@ -345,13 +345,13 @@ function sortlies(){
 }
 function selectlie(me){
 	if (me == mylie){ // you cant select your own lie!
-		$("#selectliediv").append("<h1>You musn't select your own lie!</h1>\n").trigger('create');
+		$("#selectliediv").append("<h1>You'll never gain Pharaoh's favor by selecting your own lie!</h1>\n").trigger('create');
 		return;
 	}
 	console.log("Selected lie:",me);
 	connection.send("choice:"+me);
 	output = document.getElementById("selectliediv") ;
-	output.innerHTML = '<h1>Your response was recorded.<br><br>Select your favorite jest:<br><br>'+jsonobj.question+'</h1>';
+	output.innerHTML = '<h1>Pharaoh has noted your advice.<br><br>Select your favorite lie:<br><br>'+jsonobj.question+'</h1>';
 	// sort lies in alphabetical order to prevent the truth from floating upper-alpha
 	lies = sortlies();
 	for (var l = 0; l<lies.length; l ++){
@@ -361,12 +361,12 @@ function selectlie(me){
 }
 function like(me){
 	if (me == mylie){ // you cant select your own lie!
-		$("#selectliediv").append("<h1>You musn't laugh at your own ruse!</h1>\n").trigger('create');
+		$("#selectliediv").append("<h1>A proper Vizier does not laugh at their own lie!</h1>\n").trigger('create');
 		return;
 	}
 	console.log("liked:"+me);
 	connection.send('like:'+me);
-	document.getElementById("selectliediv").innerHTML = '<h1>Awaiting the arrival of more jesters...</h1>' ;
+	document.getElementById("selectliediv").innerHTML = '<h1>Fellow Viziers are still divining the truth...</h1>' ;
 
 }
 
@@ -388,7 +388,7 @@ function showquestion(q){
 	showonly("#enterliediv");
 	$("#mylie").show();
 	$("#liebtn").show();
-	$("#mylie").attr('placeholder', "Submit thy jest forthwith");
+	$("#mylie").attr('placeholder', "Deceive Pharaoh's other advisors to gain favor");
 	document.getElementById("questionh").innerHTML = q;
 }
 
@@ -407,7 +407,7 @@ function advancestate(){
 			<h1>Fibbover</h1>
 		</div>
 		<div id="logindiv">
-			<h1>Enter your name if you wish to play!</h1>
+			<h1>Enter your name, oh wise advisor!</h1>
 			<div data-role="fieldcontain" id ="loginfieldcontain">
 				<label for="loginname">My name is</label>
 				<input type="text" id="loginname" placeholder="Dumbfuck" />
@@ -430,7 +430,7 @@ function advancestate(){
 		</div>
 		
 		<div id="enterliediv">
-			<h1 id="questionh">Enter your lie!</h1>
+			<h1 id="questionh">Deceive the other advisors!</h1>
 			<div data-role="fieldcontain">
 				<input type="text" id="mylie" placeholder="I cant think of anything.." value=''/>
 				<a data-role="button" id="liebtn" onclick="lie()" data-inline="true">Submit lie</a>	
@@ -438,7 +438,7 @@ function advancestate(){
 		</div>
 		
 		<div id="selectliediv">	
-			<h1 id = 'selectlieh'>Select the the truth!</h1>
+			<h1 id = 'selectlieh'>What would you advise the Pharaoh?</h1>
 		</div>
 		
 		<div id="viewerdiv">	
@@ -455,7 +455,7 @@ function advancestate(){
 
 		<footer>
 		<div data-role="footer" class ="ui-footer-fixed">
-			<h4> Passedover by Aaron (Voiced By Jeff Goldblum)<a data-role="button" id="advancestatebtn" data-icon="arrow-r" data-id="myfooter"  onclick="advancestate()" data-inline="true">Next</a> </h4>
+			<h4> Passedover by Aaron (voiced By Jeff Goldblum)<a data-role="button" id="advancestatebtn" data-icon="arrow-r" data-id="myfooter"  onclick="advancestate()" data-inline="true">Next</a> </h4>
 		</div>
 		</footer>
 		<script>init()</script>
