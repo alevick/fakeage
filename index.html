@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
-        <title>Fakeage Player</title>
+        <title>Fibbover</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script src="/src/jquery-1.6.4.js"></script>
         <script src="/src/jquery.mobile-1.1.0.js"></script>
@@ -43,10 +43,13 @@ var checkpng = "<img alt=\"OK\" src=\"/src/check.png\">";
 var eckspng = "<img alt =\"X\" src=\"/src/ecks.png\">";
 var likepng = "<img alt = \"likes\" src=\"/src/like.png\">";
 var cuppng = "<img alt = \"pts\" src=\"/src/cup.png\">";
+var wilhelm = new Audio("src/wilhelm_scream.mp3");
 var fakeNames = ['Rameses The Lying One', "A Firstborn Caught in the Crossliar", 'Moses, Did Not Lie About the Plagues',
+                 '3 "Dayenu"s in a Trenchcoat', 'Elijah, The False Guest', 'The Child Too Young To Lie',
                  'Slippery Tzipporah aka Slippy Tzippy', 'Pharaoh Seti, Baby Murderer AND Liar', 'Adonai, Tells No AdoLIE',
                  'Yochevedeceiver', 'Miriam, Master of Misdirection', 'A True IsraeLIEt', 'That one staff that Moses turned into a snake',
-                 'Random Egyptian, Complicit in Lies', 'Aaron (No Relation)', 'Hotep, High Priest of Deception', 'Huy, Holyman of Hokem'];
+                 'Random Egyptian, Complicit in Lies', 'Aaron (No Relation)', 'Hotep, High Priest of Deception', 'Huy, Holyman of Hokem',
+                 'Child, Who is Wise to Your Lies', 'Wicked Child, Who Lies Compulsively', 'Simple Child, Knows Not the Meaning of Lying'];
 
 function latinize(nonlatin){
 	//This function is broken, does different shit on all browsers! FUCK THIS HORRIBLE MESS! I HATE FUCKING NON-ASCII CHARACTERS!
@@ -98,7 +101,7 @@ function init(){
 	$("#enterliediv").hide();
 	$("#selectliediv").hide();
 
-	document.getElementById('pageheader').firstElementChild.innerHTML= "Fakeage @ "+gameaddress;
+	//document.getElementById('pageheader').firstElementChild.innerHTML= "Fibbover Funtime";
 
 	//console.log("Latize test:",latinize("Búzafűlé	\tcsicskalangos CleanUpString tesztelÉs"));
 	connection = new WebSocket(ipValue); //handle failure
@@ -172,7 +175,6 @@ function init(){
 				output.appendChild(pre);
 				console.log(pre.innerHTML);
 
-
 			}else{ //show lie selector ui
 				showonly("#selectliediv");
 				output = document.getElementById("selectliediv") ;
@@ -216,9 +218,10 @@ function init(){
 			output.appendChild(pre);
 			console.log(pre.innerHTML);
 		};
-		if (jsonobj.state == "finalscoring") {//scoring is identical in viewer and player
+		if (jsonobj.state == "finalscoring" || jsonobj.state == "endgame") {//scoring is identical in viewer and player
 			//var pre = document.createElement("h1");
-			document.getElementById("viewerdivhead").innerHTML = jsonobj.question + ' (' + jsonobj.answer + ')' + ' <br> Tally of thine efforts:';
+      var title = jsonobj.state == 'finalscoring' ? "Tally of thine efforts:" : 'Final scores:'
+			document.getElementById("viewerdivhead").innerHTML = jsonobj.question + ' (' + jsonobj.answer + ')' + ' <br> ' + title;
 			//console.log(pre.innerHTML);
 			//output.appendChild(pre);
 
@@ -265,7 +268,6 @@ function init(){
 			console.log(pre.innerHTML);
 			output.appendChild(pre);
 		}
-
 	}
 }
 function onError(evt){
@@ -284,16 +286,17 @@ function login(){
 	loginname = $("#loginname").val();
 	connection.send("loginname:"+loginname);
 	console.log("Logged in as:" + loginname);
-	document.getElementById('pageheader').firstElementChild.innerHTML= loginname +" @ "+gameaddress;
+	document.getElementById('pageheader').firstElementChild.innerHTML= loginname;
 
 	document.getElementById("logindiv").innerHTML = loginname + " ready";
 	if (viewer) {
 		$("#logindiv").append('<br><a data-role="button" id="forcestart" onclick="forcestart()" data-inline="true">Force start game</a><br>\n').trigger('create');
 	}
 	else{
-		$("#logindiv").append('<br><a data-role="button" id="forcestart" data-inline="true">Scream!</a><br>\n').trigger('create');
+		$("#logindiv").append('<br><a data-role="button" id="forcestart" onclick="scream()" data-inline="true">Scream!</a><br>\n').trigger('create');
 	}
-	$("#logindiv").append('<img src="qrcode.png" alt = "QR code">').trigger('create');
+	//$("#logindiv").append('<img src="qrcode.png" alt = "QR code">').trigger('create');
+	$("#logindiv").trigger('create');
 	$("#loginbtn").hide();
 	$("#loginfieldcontain").hide();
 	$("#viewbtn").hide();
@@ -313,12 +316,17 @@ function forcestart(){
 	connection.send("forcestart:"+loginname);
 	console.log("Forced start:" + loginname);
 }
+function scream() {
+  wilhelm.play();
+  wilhelm.currentTime=0;
+}
 function lie(){
 	mylie = $("#mylie").val().toUpperCase();
 	if (mylie == jsonobj.answer){
 		$("#mylie").val("That's the truth! Submit a different lie!");
 	}else{
 		connection.send("lie:"+mylie);
+		$("#mylie").val("");
 		$("#mylie").hide();
 		$("#liebtn").hide();
 		document.getElementById("questionh").innerHTML = "Jest has been recorded";
@@ -393,7 +401,7 @@ function advancestate(){
 	<body>
 		<div data-role="page" id="page1">
 		<div id="pageheader" data-role="header">
-			<h1>Fakeage</h1>
+			<h1>Fibbover</h1>
 		</div>
 		<div id="logindiv">
 			<h1>Enter your name if you wish to play!</h1>
@@ -421,13 +429,13 @@ function advancestate(){
 		<div id="enterliediv">
 			<h1 id="questionh">Enter your lie!</h1>
 			<div data-role="fieldcontain">
-				<input type="text" id="mylie" placeholder="I cant think of anything.." />
+				<input type="text" id="mylie" placeholder="I cant think of anything.." value=''/>
 				<a data-role="button" id="liebtn" onclick="lie()" data-inline="true">Submit lie</a>	
 			</div>
 		</div>
 		
 		<div id="selectliediv">	
-			<h1 id = 'selectlieh'>Select the answer which you think is the truth!</h1>
+			<h1 id = 'selectlieh'>Select the the truth!</h1>
 		</div>
 		
 		<div id="viewerdiv">	

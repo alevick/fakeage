@@ -123,7 +123,7 @@ class Game(metaclass=Singleton):
     def __init__(self):
         # state management
         self.states = ['pregame', 'lietome',
-                       'lieselection', 'scoring', 'finalscoring']
+                       'lieselection', 'scoring', 'finalscoring']  # , 'endgame']
         self.state = 'pregame'
 
         # players
@@ -142,6 +142,7 @@ class Game(metaclass=Singleton):
         self.forcestart = False
         self.question_number = 0
         self.autoadvance = False
+        self.manual_advance = False
         self.questionsfilename = ''
         self.t = time.time()
 
@@ -159,6 +160,7 @@ class Game(metaclass=Singleton):
         self.t = time.time()
 
     def reset(self):
+        print('RESET')
         # reset questions
         self.questions = []
         self.load_questions()
@@ -244,11 +246,14 @@ class Game(metaclass=Singleton):
 
     def do_scoring(self):
         print('Scoring called')
+        # if self.question_number >= len(self.questions):  # done, advance state
         if not self.scoreorder:  # done, advance state
             print('Done with scores, advancing automatically to finalscoring')
             self.state = 'finalscoring'
         else:
             self.currentlie = self.scoreorder.pop(0)[0]
+        # else:
+        #     self.state = 'lietome'
         self.update_view()
         self.time()
 
@@ -320,6 +325,8 @@ class Game(metaclass=Singleton):
                     question = Question(
                         line[0], unidecode_allcaps_shorten32(line[1]))
                     questions.append(question)
+                else:
+                    print('Could not load question', line)
         num_round_one_questions = math.floor((len(questions) - 1) / 2)
         num_round_two_questions = len(
             questions) - 1 - num_round_one_questions
@@ -349,7 +356,8 @@ class Game(metaclass=Singleton):
 
     def load_next_question(self):
         self.time()
-        if not self.questions:
+        if self.question_number >= len(self.questions):
+            print('At the last question')
             self.reset()
         self.cur_question = self.questions[self.question_number]
         self.question_number += 1
@@ -366,13 +374,17 @@ class Game(metaclass=Singleton):
 
     def handle_state(self, state):
         """ Do actions of a given game state """
+        # print('handling state change', state)
         if state in self.states:
             # call specific handler function
             state_handler_func = getattr(self, f'_handle_{state}')
             state_handler_func()
+            self.manual_advance = False
 
     def _handle_pregame(self):
-        if self.forcestart:
+        # print('handling pregame', self.state, self.manual_advance)
+        if self.forcestart or self.manual_advance:
+            # print('advancing past pregame')
             self.forcestart = False
             self.load_next_question()
             self.state = 'lietome'
@@ -383,7 +395,7 @@ class Game(metaclass=Singleton):
         # advance automatically if everyone has submitted a lie and liked an answer!
         # if time.time() - game.t > game.lietime or len(game.lies) == len(game.players):
         # to temporarily disable timing use:
-        if len(self.cur_question.lies) == len(self.players):
+        if (len(self.cur_question.lies) == len(self.players)) or self.manual_advance:
             print('Everyone has submitted their lie, advancing to lie selection')
             self.time()
             self.state = 'lieselection'
@@ -395,7 +407,7 @@ class Game(metaclass=Singleton):
         times_up = (
             time.time() - self.t) > ((len(self.cur_question.lies) + 1) * self.choicetime)
         everyone_done = len(self.cur_question.likes) == len(self.players)
-        if self.autoadvance and times_up or everyone_done:
+        if (self.autoadvance and times_up or everyone_done) or self.manual_advance:
             print('Time to choose answers lies is up, advancing to scoring')
             self.time()
             self.do_scoring()
@@ -405,18 +417,27 @@ class Game(metaclass=Singleton):
 
     def _handle_scoring(self):
         times_up = (time.time() - self.t) > self.scoretime
-        if self.autoadvance and times_up:
+        if (self.autoadvance and times_up) or self.manual_advance:
             self.do_scoring()
 
     def _handle_finalscoring(self):
         times_up = (time.time() - self.t) > (2 * self.scoretime)
-        if self.autoadvance and times_up:
+        if (self.autoadvance and times_up) or self.manual_advance:
             self.forcestart = True
-            if self.question_number >= len(self.questions):
-                self.forcestart = False
-                self.reset()
             self.state = 'pregame'
             self.time()
+        # if self.question_number >= len(self.questions):
+        #     print('Going to endgame', self.question_number, len(self.questions))
+        #     self.state = 'endgame'
+
+    def _handle_endgame(self):
+        times_up = (time.time() - self.t) > (2 * self.scoretime)
+        if self.autoadvance and times_up:
+            self.forcestart = True
+            self.state = 'pregame'
+            self.time()
+        if self.question_number >= len(self.questions):
+            self.state = 'endgame'
 
 
 def unidecode_allcaps_shorten32(string):
@@ -488,25 +509,30 @@ class WSFakeageServer(WebSocket):
         game.submit_question(parameter)
 
     def _handle_cmd_advancestate(self, parameter):
-        if game.state == 'pregame':
-            print('Force starting through viewer from', game.state)
-            game.time()
-            game.forcestart = True
-        elif game.state == "lieselection":
-            game.state = 'scoring'
-            game.do_scoring()
-        elif game.state == 'scoring':
-            game.do_scoring()
-        else:
-            idx = (game.states.index(game.state) + 1) % len(game.states)
-            newstate = game.states[max(0, idx)]
-            print(
-                f'Advancing state through viewer: from {game.state} to {newstate}')
-            if newstate == 'pregame':
-                game.forcestart = True
-            game.time()
-            game.state = newstate
-            game.update_view()
+        print('Advancing state through viewer')
+        game.manual_advance = True
+        # if game.state == 'pregame':
+        #     print('Force starting through viewer from', game.state)
+        #     game.time()
+        #     game.forcestart = True
+        # elif game.state == "lieselection":
+        #     game.state = 'scoring'
+        #     game.do_scoring()
+        # elif game.state == 'scoring':
+        #     game.do_scoring()
+        # else:
+        #     idx = (game.states.index(game.state) + 1) % len(game.states)
+        #     newstate = game.states[max(0, idx)]
+        #     # if (newstate == 'endgame' and self.question_number < len(self.questions)-1):
+        #     if (newstate == 'finalscoring' and self.question_number < len(self.questions)-1):
+        #         newstate = 'lietome'
+        #     print(
+        #         f'Advancing state through viewer: from {game.state} to {newstate}')
+        #     if newstate == 'pregame':
+        #         game.forcestart = True
+        #     game.time()
+        #     game.state = newstate
+        #     game.update_view()
 
     def handleConnected(self):
         """ Handle new ws connection """
