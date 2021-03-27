@@ -203,15 +203,17 @@ function init(){
 			}
 			
 			if (jsonobj.currentlie != jsonobj.answer){
-				pretext += jsonobj.currentlie + " <i> was a ruse! Viziers who submitted the lie: </i>  " + playerswholiedthis.join(", ")+"<br> <i> False seers whoms't were duped: </i>  "+playerswhochosethis.join(", ");
+        pretext += "<i style='color:grey'>" + jsonobj.currentlie + "</i>" + " <i> was a ruse! Submitted by: </i>  " + playerswholiedthis.join(", ")+"<br><br> <i> False seers whoms't were duped: </i>  "+ " <i style='color:grey'>" + playerswhochosethis.join(", ") + "<i>";
 			}else{
-				pretext += jsonobj.currentlie + " <i> was the proper advise! </i> <br>"
-				if (playerswhochosethis.length >0) pretext += "<i> True Viziers who divined the truth: </i>" + playerswhochosethis.join(", ");
-				else pretext += "Not a soul knew the truth!";
+        pretext += "<i style='color:green'>" + jsonobj.currentlie + "</i>" + " <i> was the proper advise! </i> <br>"
+        if (playerswhochosethis.length > 0) {
+          pretext += "<br> <i> True Viziers who divined the truth: </i>" + "<i style='color:grey'>" + playerswhochosethis.join(", ") + "</i>";
+        }
+				else pretext += "No one chose the correct advise!";
 			}
 			
 			if (playerswholikedthis.length > 0){
-				pretext += "<br> <i> Viziers who were amused: </i>"+playerswholikedthis.join(", ");
+        pretext += "<br><i> Viziers who were amused: </i>"+ "<i style='color:grey'>" + playerswholikedthis.join(", ") + "</i>";
 			}
 			pre.innerHTML = pretext;
 			output.appendChild(pre);
@@ -219,12 +221,11 @@ function init(){
 		};
 		if (jsonobj.state == "finalscoring" || jsonobj.state == "endgame") {//scoring is identical in viewer and player
 			//var pre = document.createElement("h1");
-      var title = 'Favor curried with Pharaoh';
+      var title = 'Favor curried with Pharaoh: ';
       if (jsonobj.state == 'endgame') {
-        title = 'Final scores:';
+        title = 'Final tally of Favor:';
       }
-      console.log('TITLE', title, 'state', jsonobj.state);
-			document.getElementById("viewerdivhead").innerHTML = jsonobj.question + ' (' + jsonobj.answer + ')' + ' <br> ' + title;
+			document.getElementById("viewerdivhead").innerHTML = '\n' + jsonobj.question + ' (' + jsonobj.answer + ')' + ' <br> ' + title;
 			//console.log(pre.innerHTML);
 			//output.appendChild(pre);
 
@@ -270,6 +271,13 @@ function init(){
 			pre.innerHTML = tabletext;
 			console.log(pre.innerHTML);
 			output.appendChild(pre);
+      if (jsonobj.state == "endgame") {
+        var winner = document.createElement("h1");
+        winner.innerHTML = "Pharaoh's new Divine Vizier is... " + sorted_players_by_score[0][0]
+        winner.style.color = 'gold';
+        output.appendChild(winner);
+      }
+
 		}
 	}
 }
