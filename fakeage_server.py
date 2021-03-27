@@ -375,7 +375,6 @@ class Game(metaclass=Singleton):
 
     def handle_state(self, state):
         """ Do actions of a given game state """
-        print('handling state change', state)
         if state in self.states:
             # call specific handler function
             state_handler_func = getattr(self, f'_handle_{state}')
@@ -550,7 +549,8 @@ def write_websocket_ip_to_file(websocket_ip_fn="websocket_ip.js", wshostname='')
                            'Do not edit.\n')
     ws_ip_file_text.append('function get_websocket_ip(){\n')
     ws_ip_file_text.append(
-        '\treturn "ws://{}:{}/"\n'.format(my_ip if wshostname == '' else wshostname, args.wsport))
+        # '\treturn "ws://{}:{}/"\n'.format(my_ip if wshostname == '' else wshostname, args.wsport))
+        '\treturn "ws://fibbover-ws.ngrok.io"\n')
     ws_ip_file_text.append('}')
     with open(websocket_ip_fn, 'w') as wsfile_w:
         wsfile_w.write(''.join(ws_ip_file_text))

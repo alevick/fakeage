@@ -45,11 +45,11 @@ var likepng = "<img alt = \"likes\" src=\"/src/like.png\">";
 var cuppng = "<img alt = \"pts\" src=\"/src/cup.png\">";
 var wilhelm = new Audio("src/wilhelm_scream.mp3");
 var fakeNames = ['Rameses The Lying One', "A Firstborn Caught in the Crossliar", 'Moses, Did Not Lie About the Plagues',
-                 '3 "Dayenu"s in a Trenchcoat', 'Elijah, The False Guest', 'The Child Too Young To Lie',
+                 'Not a Person, But 3 "Dayenu"s in a Trenchcoat', 'Elijah, The False Guest', 'The Child Too Young To Lie',
                  'Slippery Tzipporah aka Slippy Tzippy', 'Pharaoh Seti, Baby Murderer AND Liar', 'Adonai, Tells No AdoLIE',
                  'Yochevedeceiver', 'Miriam, Master of Misdirection', 'A True IsraeLIEt', 'That one staff that Moses turned into a snake',
                  'Random Egyptian, Complicit in Lies', 'Aaron (No Relation)', 'Hotep, High Priest of Deception', 'Huy, Holyman of Hokem',
-                 'Child, Who is Wise to Your Lies', 'Wicked Child, Who Lies Compulsively', 'Simple Child, Knows Not the Meaning of Lying'];
+                 'Wise Child, Sees Through Your Lies', 'Wicked Child, Who Lies Compulsively', 'Simple Child, Knows Not the Meaning of Lying'];
 
 function latinize(nonlatin){
 	//This function is broken, does different shit on all browsers! FUCK THIS HORRIBLE MESS! I HATE FUCKING NON-ASCII CHARACTERS!
@@ -94,7 +94,6 @@ function create_table_from_list_of_html_codes(mylist){
 function init(){
 	ipValue = get_websocket_ip();
 	gameaddress ="http://"+ ipValue.split("/")[2].split(":")[0] +":8000";
-	console.log("Websocket IP:",ipValue);
 	showonly('logindiv');
 	$("#loginname").attr("placeholder", fakeNames[Math.floor(Math.random() * (fakeNames.length))]);
 	$("#viewerdiv").hide(); //because showonly has no effect here, wtf?
@@ -122,8 +121,8 @@ function init(){
 		var output = document.getElementById("viewerdivbody");
 		output.innerHTML = ''; //clear body
 		if (jsonobj.state == 'pregame' && viewer){
-			document.getElementById("viewerdivhead").innerHTML = '<table width="100%" style="margin: 10px;"> <tr>  <td><img src="qrcode.png" alt = "QR code"> </td> <td> Waiting for other players: '+
-					gameaddress +'<br/> Players here:' + jsonobj.players.length + '</td></tr></table>';
+			document.getElementById("viewerdivhead").innerHTML = '<table width="100%" style="margin: 10px;"> <tr>  <td><img src="qrcode.png" alt = "QR code"> </td> <td> Waiting for other players.' +
+					'<br/> Players here:' + jsonobj.players.length + '</td></tr></table>';
 			var pre = document.createElement("b");
 			var playerlist = []
 			for (var player = 0; player<jsonobj.players.length; player ++){
